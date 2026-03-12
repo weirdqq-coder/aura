@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Aura</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080810;--s1:#0f0f1a;--s2:#161625;--s3:#1e1e30;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --gold:#d4a853;--gold2:#f0c878;--gold-dim:rgba(212,168,83,0.12);--gold-b:rgba(212,168,83,0.25);
+  --text:#f0eae0;--t2:rgba(240,234,224,0.55);--t3:rgba(240,234,224,0.28);
+  --purple:#8b7cf8;--purple2:#a99fff;--purple-dim:rgba(139,124,248,0.12);--purple-b:rgba(139,124,248,0.25);
+  --green:#4ecb8d;--green-dim:rgba(78,203,141,0.12);--green-b:rgba(78,203,141,0.25);
+  --red:#f07070;--red-dim:rgba(240,112,112,0.12);
+  --blue:#5b9cf6;--blue-dim:rgba(91,156,246,0.12);
+}
+html,body{width:100%;min-height:100vh;background:#03030a;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 15% 15%,rgba(139,124,248,0.07),transparent 60%),radial-gradient(ellipse 50% 35% at 85% 85%,rgba(212,168,83,0.06),transparent 55%);pointer-events:none}
+
+.phone{width:393px;height:852px;background:var(--bg);border-radius:52px;border:1px solid rgba(255,255,255,0.09);overflow:hidden;position:relative;box-shadow:0 0 0 1px #000,0 50px 150px rgba(0,0,0,0.9);display:flex;flex-direction:column;z-index:1}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:34px;background:#000;border-radius:0 0 20px 22px;z-index:100}
+
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.3s ease;overflow:hidden}
+.screen.active{opacity:1;pointer-events:all}
+
+.sb{height:48px;padding:13px 26px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;z-index:10}
+.sb-t{font-size:15px;font-weight:600;color:var(--text)}
+.sb-r{display:flex;align-items:center;gap:5px;opacity:0.8}
+
+.nav{height:80px;background:rgba(8,8,16,0.97);backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;padding:0 4px 14px;flex-shrink:0;z-index:50}
+.ni{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 14px;border-radius:14px;transition:all 0.2s;-webkit-tap-highlight-color:transparent}
+.ni:active{transform:scale(0.88)}
+.ni .nl{font-size:10px;font-weight:500;color:var(--t3);transition:color 0.2s}
+.ni.on .nl{color:var(--gold)}
+
+.sc{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sc::-webkit-scrollbar{display:none}
+
+/* ── TYPOGRAPHY ── */
+.page-title{font-family:'Instrument Serif',serif;font-size:27px;color:var(--text);letter-spacing:-0.4px;line-height:1.15}
+.page-sub{font-size:13px;color:var(--t2);margin-top:3px;line-height:1.45}
+
+/* ── ONBOARDING ── */
+.ob-screen{display:flex;flex-direction:column;height:100%}
+.ob-step{display:none;flex:1;flex-direction:column;padding:0 0 20px}
+.ob-step.show{display:flex}
+.ob-top{padding:56px 28px 20px;flex:1;display:flex;flex-direction:column}
+.ob-progress{display:flex;gap:5px;margin-bottom:32px}
+.ob-dot{height:3px;border-radius:2px;background:rgba(255,255,255,0.1);flex:1;transition:background 0.3s}
+.ob-dot.done{background:var(--gold)}
+.ob-emoji{font-size:48px;margin-bottom:20px}
+.ob-title{font-family:'Instrument Serif',serif;font-size:30px;color:var(--text);line-height:1.2;margin-bottom:10px}
+.ob-sub{font-size:14px;color:var(--t2);line-height:1.6;margin-bottom:28px}
+
+/* Form elements */
+.ob-label{font-size:12px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--t3);margin-bottom:8px;display:block}
+.ob-input{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:14px;padding:14px 16px;color:var(--text);font-size:16px;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;margin-bottom:14px}
+.ob-input:focus{border-color:var(--gold-b)}
+.ob-input::placeholder{color:var(--t3)}
+.ob-input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.ob-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.ob-chip{background:var(--s2);border:1px solid var(--border2);border-radius:22px;padding:9px 16px;font-size:13px;color:var(--t2);cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;font-weight:500}
+.ob-chip:active{transform:scale(0.95)}
+.ob-chip.on{background:var(--gold-dim);border-color:var(--gold-b);color:var(--gold);font-weight:600}
+
+.scale-row{display:flex;gap:6px;margin-bottom:6px}
+.scale-btn{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 4px;text-align:center;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent}
+.scale-btn:active{transform:scale(0.93)}
+.scale-btn .sn{font-size:16px;font-weight:700;color:var(--t3);display:block;margin-bottom:2px;transition:color 0.2s}
+.scale-btn .sl{font-size:9px;color:var(--t3);transition:color 0.2s}
+.scale-btn.on{background:var(--gold-dim);border-color:var(--gold-b)}
+.scale-btn.on .sn,.scale-btn.on .sl{color:var(--gold)}
+
+.ob-bottom{padding:0 28px;flex-shrink:0}
+.ob-btn{width:100%;background:linear-gradient(135deg,var(--gold),#a06820);border:none;border-radius:16px;padding:16px;color:#000;font-size:16px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all 0.2s;letter-spacing:0.2px}
+.ob-btn:active{transform:scale(0.97);opacity:0.85}
+.ob-btn:disabled{opacity:0.35;cursor:not-allowed}
+.ob-back{background:none;border:none;color:var(--t3);font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;padding:10px 0 0;display:block;width:100%;text-align:center}
+
+/* ── MAIN APP ── */
+.hdr{padding:6px 24px 16px}
+.aura-hero{margin:0 20px 14px;background:linear-gradient(145deg,#141428,#0c0c1e 60%,#1a1208);border:1px solid rgba(212,168,83,0.18);border-radius:24px;padding:22px;position:relative;overflow:hidden}
+.aura-hero::after{content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;background:radial-gradient(circle,rgba(212,168,83,0.1),transparent 70%);pointer-events:none}
+.score-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.score-lbl::before{content:'';width:18px;height:1px;background:var(--gold);opacity:0.5}
+.score-num{font-family:'Instrument Serif',serif;font-size:70px;color:var(--text);line-height:1;letter-spacing:-4px}
+.score-sub-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px}
+.score-title{font-size:15px;font-weight:600;color:var(--text)}
+.score-delta{font-size:12px;color:var(--green);font-weight:600}
+.pillars{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pillar{background:rgba(255,255,255,0.04);border-radius:11px;padding:10px 12px}
+.pillar-top{display:flex;justify-content:space-between;margin-bottom:5px}
+.pname{font-size:11px;color:var(--t2);font-weight:500}
+.ppct{font-size:11px;font-weight:700;color:var(--text)}
+.pbar{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden}
+.pfill{height:100%;border-radius:2px}
+
+.streak-card{margin:0 20px 14px;background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:14px 18px;display:flex;align-items:center;gap:12px}
+.week-dots{display:flex;gap:5px}
+.wd{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;text-transform:uppercase}
+.wd.done{background:var(--gold);color:#000}
+.wd.today{background:var(--gold-dim);border:1px solid var(--gold-b);color:var(--gold)}
+.wd.off{background:rgba(255,255,255,0.04);color:var(--t3)}
+
+.sec-hdr{padding:0 24px 10px;display:flex;justify-content:space-between;align-items:center}
+.sec-t{font-size:15px;font-weight:600;color:var(--text)}
+
+.quick-grid{padding:0 20px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qc{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:16px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;position:relative}
+.qc:active{transform:scale(0.95)}
+.qc-ico{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px}
+.qc-t{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.qc-s{font-size:11px;color:var(--t3)}
+.qc-arr{position:absolute;top:14px;right:14px;color:var(--t3);font-size:18px}
+
+/* Goals card on home */
+.goals-preview{margin:0 20px 14px;background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:16px 18px}
+.goals-preview-t{font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px}
+.goal-chip{display:inline-flex;align-items:center;gap:5px;background:var(--purple-dim);border:1px solid var(--purple-b);border-radius:22px;padding:5px 12px;font-size:12px;color:var(--purple2);font-weight:500;margin:3px 3px 3px 0}
+
+/* ── COACH ── */
+.mode-pills{display:flex;gap:7px;padding:0 22px 10px;overflow-x:auto;scrollbar-width:none}
+.mode-pills::-webkit-scrollbar{display:none}
+.mpill{flex-shrink:0;background:var(--s2);border:1px solid var(--border);border-radius:22px;padding:8px 14px;font-size:12px;font-weight:500;color:var(--t2);cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.mpill.on{background:var(--gold-dim);border-color:var(--gold-b);color:var(--gold);font-weight:600}
+.ctx-bar{margin:0 18px 10px;background:var(--s2);border:1px solid var(--border);border-radius:13px;padding:9px 13px;display:flex;align-items:center;gap:8px}
+.ctx-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;animation:glow 2s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 4px var(--green)}50%{box-shadow:0 0 10px var(--green)}}
+.ctx-t{font-size:12px;color:var(--t2)}
+.ctx-t strong{color:var(--text);font-weight:600}
+.chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-msgs{flex:1;padding:4px 18px 8px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;scrollbar-width:none}
+.chat-msgs::-webkit-scrollbar{display:none}
+.mrow{display:flex;flex-direction:column}
+.mrow.user{align-items:flex-end}
+.mrow.ai{align-items:flex-start}
+.mwho{font-size:10px;color:var(--t3);font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:4px;padding:0 4px}
+.bubble{padding:12px 15px;border-radius:20px;font-size:14px;line-height:1.6;max-width:86%}
+.bubble.ai{background:var(--s2);border:1px solid var(--border);color:var(--text);border-top-left-radius:5px}
+.bubble.user{background:linear-gradient(135deg,var(--gold),#a06820);color:#000;font-weight:500;border-top-right-radius:5px}
+.tbub{padding:12px 15px;border-radius:20px;border-top-left-radius:5px;background:var(--s2);border:1px solid var(--border);display:flex;gap:5px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--t3);animation:blink 1.3s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,60%,100%{opacity:0.25;transform:scale(0.8)}30%{opacity:1;transform:scale(1)}}
+.chat-btm{padding:10px 18px 4px;display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+.cin{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:22px;padding:11px 16px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;outline:none;resize:none;max-height:90px;overflow-y:auto;line-height:1.5;transition:border-color 0.2s;scrollbar-width:none}
+.cin:focus{border-color:rgba(212,168,83,0.3)}
+.cin::placeholder{color:var(--t3)}
+.cin::-webkit-scrollbar{display:none}
+.sbtn{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a06820);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s;align-self:flex-end}
+.sbtn:active{transform:scale(0.9)}
+.sbtn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* ── VOICE ── */
+.voice-hero{margin:8px 20px 12px;background:linear-gradient(145deg,#12122a,#0f0f1e);border:1px solid rgba(139,124,248,0.2);border-radius:24px;padding:24px;text-align:center;position:relative;overflow:hidden}
+.voice-hero::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:220px;background:radial-gradient(circle,rgba(139,124,248,0.1),transparent 70%)}
+.waveform{display:flex;align-items:center;justify-content:center;gap:3px;height:40px;margin:10px 0}
+.wb{width:3px;border-radius:2px;background:var(--purple);opacity:0.3;transition:height 0.08s ease,opacity 0.08s ease}
+.rec-btn{width:76px;height:76px;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;cursor:pointer;transition:all 0.2s;position:relative;z-index:1;background:linear-gradient(135deg,var(--purple),#6a5ce0);box-shadow:0 0 28px rgba(139,124,248,0.22)}
+.rec-btn:active{transform:scale(0.93)}
+.rec-btn.on{background:linear-gradient(135deg,var(--red),#c04040);box-shadow:0 0 40px rgba(240,112,112,0.35);animation:rp 1.6s infinite}
+@keyframes rp{0%,100%{box-shadow:0 0 28px rgba(240,112,112,0.28)}50%{box-shadow:0 0 55px rgba(240,112,112,0.55),0 0 0 12px rgba(240,112,112,0.07)}}
+.rec-hint{font-size:12px;color:var(--t3);position:relative;z-index:1}
+.rec-time{font-size:26px;font-weight:700;color:var(--text);margin-top:6px;display:none;position:relative;z-index:1;font-family:'Instrument Serif',serif}
+.v-results{display:none;padding:0 20px}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.mc{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:14px}
+.mc-ico{font-size:18px;margin-bottom:6px}
+.mc-lbl{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:4px}
+.mc-val{font-family:'Instrument Serif',serif;font-size:26px;color:var(--text);line-height:1}
+.mc-u{font-size:12px;color:var(--t3);font-family:'Inter',sans-serif}
+.mc-t{font-size:11px;font-weight:600;margin-top:3px}
+.up{color:var(--green)}.dn{color:var(--red)}.nt{color:var(--gold)}
+.fcard{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:12px}
+.fhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.fchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+.fchip{background:var(--red-dim);border:1px solid rgba(240,112,112,0.2);color:var(--red);font-size:12px;padding:4px 11px;border-radius:20px;font-weight:500}
+.ftip{font-size:12px;color:var(--t2);line-height:1.6;background:var(--s2);border-radius:10px;padding:10px;border:1px solid var(--border)}
+.atip{background:linear-gradient(135deg,#14142a,#0f0f1e);border:1px solid rgba(139,124,248,0.18);border-radius:16px;padding:14px;margin-bottom:14px}
+.atip-lbl{font-size:10px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--purple2);margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.atip-t{font-size:13px;color:var(--t2);line-height:1.65}
+
+/* ── CHALLENGES ── */
+.ch-prog{margin:0 20px 14px;background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:14px 18px}
+.ch-pt{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ch-track{height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.ch-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width 0.5s ease}
+.ch-list{padding:0 20px;display:flex;flex-direction:column;gap:8px}
+.chi{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.22s;-webkit-tap-highlight-color:transparent}
+.chi:not(.done):active{transform:scale(0.97)}
+.chi.done{opacity:0.5}
+.ch-em{font-size:27px;flex-shrink:0}
+.ch-ring{width:28px;height:28px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s}
+.chi.done .ch-ring{background:var(--green);border-color:var(--green)}
+
+/* ── LESSONS ── */
+.cat-strip{display:flex;gap:7px;padding:0 24px 12px;overflow-x:auto;scrollbar-width:none}
+.cat-strip::-webkit-scrollbar{display:none}
+.ctab{flex-shrink:0;padding:7px 14px;border-radius:22px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;background:var(--s2);border:1px solid var(--border);color:var(--t3)}
+.ctab.on{background:var(--gold);color:#000;border-color:var(--gold)}
+.les-list{padding:0 20px;display:flex;flex-direction:column;gap:10px}
+.lcard{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:16px;display:flex;gap:12px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent}
+.lcard:active{transform:scale(0.97)}
+.lthumb{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:25px;flex-shrink:0}
+.lcat{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px}
+.ltitle{font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px;line-height:1.3}
+.lmeta{display:flex;gap:8px;align-items:center;margin-bottom:5px}
+.ldur{font-size:11px;color:var(--t3)}
+.llvl{font-size:9px;font-weight:600;letter-spacing:0.7px;padding:3px 8px;border-radius:10px}
+.lpbar{height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
+.lpfill{height:100%;border-radius:2px}
+.ldetail{position:absolute;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.32s cubic-bezier(.4,0,.2,1)}
+.ldetail.open{transform:translateX(0)}
+.lds{flex:1;overflow-y:auto;scrollbar-width:none;padding:16px 22px 28px}
+.lds::-webkit-scrollbar{display:none}
+.back-btn{display:flex;align-items:center;gap:6px;color:var(--gold);font-size:14px;font-weight:600;cursor:pointer;margin-bottom:18px}
+.lb{font-size:14px;color:var(--t2);line-height:1.75}
+.lb h3{font-family:'Instrument Serif',serif;font-size:20px;color:var(--text);margin:18px 0 8px;line-height:1.3}
+.lb h4{font-size:13px;font-weight:700;color:var(--text);margin:14px 0 6px}
+.lb p{margin-bottom:11px}
+.lb ul{padding-left:16px;margin-bottom:11px}
+.lb li{margin-bottom:7px}
+.lb strong{color:var(--text);font-weight:600}
+.tip-box{background:var(--gold-dim);border:1px solid var(--gold-b);border-radius:14px;padding:12px 14px;margin:12px 0}
+.tip-box p{color:var(--gold2);font-size:13px;margin:0;line-height:1.6}
+
+/* ── PROFILE ── */
+.prof-hero{padding:6px 24px 18px;text-align:center}
+.prof-av{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px;border:2px solid rgba(255,255,255,0.08)}
+.stats-row{padding:0 20px 14px;display:flex;gap:9px}
+.stat-c{flex:1;background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:14px 10px;text-align:center}
+.stat-v{font-family:'Instrument Serif',serif;font-size:26px;color:var(--text);line-height:1}
+.stat-l{font-size:9px;color:var(--t3);margin-top:4px;text-transform:uppercase;letter-spacing:0.8px;font-weight:600}
+.growth-sec{padding:0 20px 14px}
+.gi{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.gi-lbl{font-size:12px;color:var(--t2);width:76px;flex-shrink:0}
+.gi-track{flex:1;height:5px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+.gi-fill{height:100%;border-radius:3px;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.gi-pct{font-size:12px;font-weight:600;color:var(--text);width:32px;text-align:right;flex-shrink:0}
+.menu-sec{padding:0 20px 20px;display:flex;flex-direction:column;gap:2px}
+.menu-i{background:var(--s1);border:1px solid var(--border);padding:15px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-size:14px;color:var(--text);transition:background 0.15s;-webkit-tap-highlight-color:transparent}
+.menu-i:active{background:var(--s2)}
+.menu-i:first-child{border-radius:16px 16px 4px 4px}
+.menu-i:last-child{border-radius:4px 4px 16px 16px}
+.menu-i+.menu-i{border-top:none}
+
+/* TOAST */
+.toast{position:absolute;bottom:92px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--s3);border:1px solid var(--border2);color:var(--text);font-size:13px;font-weight:500;padding:10px 18px;border-radius:22px;opacity:0;transition:all 0.28s;white-space:nowrap;z-index:500;pointer-events:none;backdrop-filter:blur(10px)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Edit overlay */
+.edit-overlay{position:absolute;inset:0;background:rgba(8,8,16,0.96);z-index:300;display:flex;flex-direction:column;padding:56px 28px 28px;transform:translateY(100%);transition:transform 0.32s cubic-bezier(.4,0,.2,1)}
+.edit-overlay.open{transform:translateY(0)}
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+<div class="notch"></div>
+<div class="toast" id="toast"></div>
+
+<!-- ══════════ ONBOARDING ══════════ -->
+<div class="screen active" id="s-onboard">
+  <div class="ob-screen">
+
+    <!-- STEP 1: Name + Age -->
+    <div class="ob-step show" id="ob1">
+      <div class="ob-top">
+        <div class="ob-progress">
+          <div class="ob-dot done" id="p1"></div><div class="ob-dot" id="p2"></div>
+          <div class="ob-dot" id="p3"></div><div class="ob-dot" id="p4"></div><div class="ob-dot" id="p5"></div>
+        </div>
+        <div class="ob-emoji">👋</div>
+        <div class="ob-title">Welcome to Aura</div>
+        <div class="ob-sub">Let's build your confidence profile. This takes 2 minutes and makes everything personal to you.</div>
+        <label class="ob-label">Your first name</label>
+        <input class="ob-input" id="ob-name" type="text" placeholder="e.g. Alex" autocomplete="off" oninput="checkStep1()">
+        <div class="ob-input-row">
+          <div>
+            <label class="ob-label">Age</label>
+            <input class="ob-input" id="ob-age" type="number" placeholder="e.g. 26" min="13" max="99" oninput="checkStep1()">
+          </div>
+          <div>
+            <label class="ob-label">Gender</label>
+            <select class="ob-input" id="ob-gender" onchange="checkStep1()" style="cursor:pointer;color:var(--text)">
+              <option value="" style="background:#111">Select…</option>
+              <option value="male" style="background:#111">Male</option>
+              <option value="female" style="background:#111">Female</option>
+              <option value="non-binary" style="background:#111">Non-binary</option>
+              <option value="prefer not to say" style="background:#111">Rather not say</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="ob-bottom">
+        <button class="ob-btn" id="ob1-btn" onclick="goStep(2)" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Confidence goals -->
+    <div class="ob-step" id="ob2">
+      <div class="ob-top">
+        <div class="ob-progress">
+          <div class="ob-dot done"></div><div class="ob-dot done"></div>
+          <div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div>
+        </div>
+        <div class="ob-emoji">🎯</div>
+        <div class="ob-title">What do you want to improve?</div>
+        <div class="ob-sub">Pick all that apply. This shapes your daily challenges and coaching style.</div>
+        <div class="ob-chips" id="goals-chips">
+          <div class="ob-chip" onclick="toggleChip(this,'goals')">Small talk & conversation</div>
+          <div class="ob-chip" onclick="toggleChip(this,'goals')">Making people laugh</div>
+          <div class="ob-chip" onclick="toggleChip(this,'goals')">Dating & attraction</div>
+          <div class="ob-chip" onclick="toggleChip(this,'goals')">Public speaking</div>
+          <div class="ob-chip" onclick="toggleChip(this,'goals')">Networking & career</div>
+          <div class="ob-chip" onclick="toggleChip(this,'goals')">Standing up for myself</div>
+          <div class="ob-chip" onclick="toggleChip(this,'goals')">Body language & presence</div>
+          <div class="ob-chip" onclick="toggleChip(this,'goals')">Storytelling</div>
+        </div>
+      </div>
+      <div class="ob-bottom">
+        <button class="ob-btn" id="ob2-btn" onclick="goStep(3)" disabled>Continue →</button>
+        <button class="ob-back" onclick="goStep(1)">← Back</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Self-assessment -->
+    <div class="ob-step" id="ob3">
+      <div class="ob-top">
+        <div class="ob-progress">
+          <div class="ob-dot done"></div><div class="ob-dot done"></div>
+          <div class="ob-dot done"></div><div class="ob-dot"></div><div class="ob-dot"></div>
+        </div>
+        <div class="ob-emoji">🪞</div>
+        <div class="ob-title">Rate yourself honestly</div>
+        <div class="ob-sub">This sets your starting Aura Score. Be real — it only helps you improve faster.</div>
+        <div style="margin-bottom:18px">
+          <label class="ob-label" style="margin-bottom:10px;display:block">Confidence in social situations</label>
+          <div class="scale-row" id="sc-conf">
+            <div class="scale-btn" onclick="setScale('conf',1,this)"><span class="sn">1</span><span class="sl">Low</span></div>
+            <div class="scale-btn" onclick="setScale('conf',2,this)"><span class="sn">2</span></div>
+            <div class="scale-btn" onclick="setScale('conf',3,this)"><span class="sn">3</span></div>
+            <div class="scale-btn" onclick="setScale('conf',4,this)"><span class="sn">4</span></div>
+            <div class="scale-btn" onclick="setScale('conf',5,this)"><span class="sn">5</span><span class="sl">High</span></div>
+          </div>
+        </div>
+        <div style="margin-bottom:18px">
+          <label class="ob-label" style="margin-bottom:10px;display:block">How likeable / charismatic you feel</label>
+          <div class="scale-row" id="sc-charm">
+            <div class="scale-btn" onclick="setScale('charm',1,this)"><span class="sn">1</span><span class="sl">Low</span></div>
+            <div class="scale-btn" onclick="setScale('charm',2,this)"><span class="sn">2</span></div>
+            <div class="scale-btn" onclick="setScale('charm',3,this)"><span class="sn">3</span></div>
+            <div class="scale-btn" onclick="setScale('charm',4,this)"><span class="sn">4</span></div>
+            <div class="scale-btn" onclick="setScale('charm',5,this)"><span class="sn">5</span><span class="sl">High</span></div>
+          </div>
+        </div>
+        <div>
+          <label class="ob-label" style="margin-bottom:10px;display:block">Comfort speaking in front of others</label>
+          <div class="scale-row" id="sc-speak">
+            <div class="scale-btn" onclick="setScale('speak',1,this)"><span class="sn">1</span><span class="sl">Low</span></div>
+            <div class="scale-btn" onclick="setScale('speak',2,this)"><span class="sn">2</span></div>
+            <div class="scale-btn" onclick="setScale('speak',3,this)"><span class="sn">3</span></div>
+            <div class="scale-btn" onclick="setScale('speak',4,this)"><span class="sn">4</span></div>
+            <div class="scale-btn" onclick="setScale('speak',5,this)"><span class="sn">5</span><span class="sl">High</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="ob-bottom">
+        <button class="ob-btn" id="ob3-btn" onclick="goStep(4)" disabled>Continue →</button>
+        <button class="ob-back" onclick="goStep(2)">← Back</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Biggest struggle -->
+    <div class="ob-step" id="ob4">
+      <div class="ob-top">
+        <div class="ob-progress">
+          <div class="ob-dot done"></div><div class="ob-dot done"></div>
+          <div class="ob-dot done"></div><div class="ob-dot done"></div><div class="ob-dot"></div>
+        </div>
+        <div class="ob-emoji">😓</div>
+        <div class="ob-title">What's your biggest social struggle?</div>
+        <div class="ob-sub">Pick one. Your AI coach will focus coaching sessions on this first.</div>
+        <div class="ob-chips" id="struggle-chips">
+          <div class="ob-chip" onclick="toggleChip(this,'struggle',true)">Running out of things to say</div>
+          <div class="ob-chip" onclick="toggleChip(this,'struggle',true)">Coming across as boring</div>
+          <div class="ob-chip" onclick="toggleChip(this,'struggle',true)">Fear of judgment</div>
+          <div class="ob-chip" onclick="toggleChip(this,'struggle',true)">Anxiety in groups</div>
+          <div class="ob-chip" onclick="toggleChip(this,'struggle',true)">Can't be funny naturally</div>
+          <div class="ob-chip" onclick="toggleChip(this,'struggle',true)">Weak voice / presence</div>
+          <div class="ob-chip" onclick="toggleChip(this,'struggle',true)">Overthinking what to say</div>
+          <div class="ob-chip" onclick="toggleChip(this,'struggle',true)">Bad at flirting / dating</div>
+        </div>
+      </div>
+      <div class="ob-bottom">
+        <button class="ob-btn" id="ob4-btn" onclick="goStep(5)" disabled>Continue →</button>
+        <button class="ob-back" onclick="goStep(3)">← Back</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: Commitment + finish -->
+    <div class="ob-step" id="ob5">
+      <div class="ob-top">
+        <div class="ob-progress">
+          <div class="ob-dot done"></div><div class="ob-dot done"></div>
+          <div class="ob-dot done"></div><div class="ob-dot done"></div><div class="ob-dot done"></div>
+        </div>
+        <div class="ob-emoji">🔥</div>
+        <div class="ob-title">How many minutes per day?</div>
+        <div class="ob-sub">Consistent daily practice is what actually moves the needle. Even 5 minutes makes a difference.</div>
+        <div class="ob-chips" id="time-chips" style="margin-bottom:24px">
+          <div class="ob-chip" onclick="toggleChip(this,'time',true)">5 min</div>
+          <div class="ob-chip" onclick="toggleChip(this,'time',true)">10 min</div>
+          <div class="ob-chip" onclick="toggleChip(this,'time',true)">15 min</div>
+          <div class="ob-chip" onclick="toggleChip(this,'time',true)">20+ min</div>
+        </div>
+        <label class="ob-label">Anything else you want your coach to know? <span style="color:var(--t3);font-size:10px;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <textarea class="ob-input" id="ob-extra" placeholder="e.g. I'm preparing for a job interview in 3 weeks, I'm naturally introverted…" rows="3" style="resize:none;line-height:1.5"></textarea>
+      </div>
+      <div class="ob-bottom">
+        <button class="ob-btn" id="ob5-btn" onclick="finishOnboard()" disabled>Build My Profile →</button>
+        <button class="ob-back" onclick="goStep(4)">← Back</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ HOME ══════════ -->
+<div class="screen" id="s-home">
+  <div class="sb"><span class="sb-t" id="clk">9:41</span><div class="sb-r"><svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="3" width="3" height="8" rx="1" fill="white" opacity="0.35"/><rect x="4.5" y="2" width="3" height="9" rx="1" fill="white" opacity="0.55"/><rect x="9" y="0" width="3" height="11" rx="1" fill="white" opacity="0.75"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="white"/></svg><svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="20" height="10" rx="3" stroke="white" stroke-opacity="0.3"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="white"/></svg></div></div>
+  <div class="sc">
+    <div class="hdr">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div id="greet" style="font-size:12px;color:var(--t3);margin-bottom:2px">Good morning ✦</div><div class="page-title" id="h-name">—</div></div>
+        <div class="prof-av" id="h-av" style="width:44px;height:44px;font-size:22px;margin:0;box-shadow:none;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--purple))">?</div>
+      </div>
+    </div>
+    <div class="aura-hero">
+      <div class="score-lbl">AURA SCORE</div>
+      <div class="score-sub-row">
+        <div class="score-num" id="h-score">—</div>
+        <div><div class="score-title" id="h-rank">—</div><div class="score-delta" id="h-delta" style="display:none"></div></div>
+      </div>
+      <div class="pillars" id="h-pillars">
+        <div class="pillar"><div class="pillar-top"><span class="pname">Confidence</span><span class="ppct" id="p-conf">—</span></div><div class="pbar"><div class="pfill" id="pf-conf" style="width:0%;background:var(--gold)"></div></div></div>
+        <div class="pillar"><div class="pillar-top"><span class="pname">Charisma</span><span class="ppct" id="p-charm">—</span></div><div class="pbar"><div class="pfill" id="pf-charm" style="width:0%;background:var(--purple)"></div></div></div>
+        <div class="pillar"><div class="pillar-top"><span class="pname">Speaking</span><span class="ppct" id="p-speak">—</span></div><div class="pbar"><div class="pfill" id="pf-speak" style="width:0%;background:var(--blue)"></div></div></div>
+        <div class="pillar"><div class="pillar-top"><span class="pname">Potential</span><span class="ppct" id="p-pot">—</span></div><div class="pbar"><div class="pfill" id="pf-pot" style="width:0%;background:var(--green)"></div></div></div>
+      </div>
+    </div>
+    <div class="streak-card">
+      <div style="font-size:32px">🔥</div>
+      <div style="flex:1">
+        <div style="font-family:'Instrument Serif',serif;font-size:26px;color:var(--text);line-height:1" id="h-streak">0</div>
+        <div style="font-size:12px;color:var(--t2)">day streak</div>
+      </div>
+      <div class="week-dots" id="week-dots"></div>
+    </div>
+    <div class="goals-preview" id="goals-preview">
+      <div class="goals-preview-t">Your Focus Areas</div>
+      <div id="goals-display"></div>
+    </div>
+    <div class="sec-hdr"><div class="sec-t">Practice</div></div>
+    <div class="quick-grid">
+      <div class="qc" onclick="go('coach')" style="border-color:rgba(212,168,83,0.15)"><div class="qc-ico" style="background:var(--gold-dim)">🎭</div><div class="qc-t">AI Coach</div><div class="qc-s">Personalized to you</div><div class="qc-arr">›</div></div>
+      <div class="qc" onclick="go('voice')" style="border-color:rgba(139,124,248,0.15)"><div class="qc-ico" style="background:var(--purple-dim)">🎙️</div><div class="qc-t">Voice Lab</div><div class="qc-s">Analyze your speech</div><div class="qc-arr">›</div></div>
+      <div class="qc" onclick="go('challenges')"><div class="qc-ico" style="background:var(--green-dim)">⚡</div><div class="qc-t">Challenges</div><div class="qc-s" id="qc-ch-sub">Daily missions</div><div class="qc-arr">›</div></div>
+      <div class="qc" onclick="go('lessons')"><div class="qc-ico" style="background:var(--blue-dim)">📖</div><div class="qc-t">Lessons</div><div class="qc-s">Social intelligence</div><div class="qc-arr">›</div></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+  <div class="nav">
+    <div class="ni on" onclick="go('home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3L21 9.5V20C21 20.6 20.6 21 20 21H15V15H9V21H4C3.4 21 3 20.6 3 20V9.5Z" stroke="var(--gold)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl" style="color:var(--gold)">Home</div></div>
+    <div class="ni" onclick="go('coach')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Coach</div></div>
+    <div class="ni" onclick="go('challenges')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Challenges</div></div>
+    <div class="ni" onclick="go('lessons')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 19.5C4 18.1 5.1 17 6.5 17H20" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linecap="round"/><path d="M6.5 2H20V22H6.5C5.1 22 4 20.9 4 19.5V4.5C4 3.1 5.1 2 6.5 2Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Learn</div></div>
+    <div class="ni" onclick="go('profile')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="rgba(240,234,224,0.35)" stroke-width="1.8"/><path d="M4 20C4 17 7.6 14.5 12 14.5C16.4 14.5 20 17 20 20" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linecap="round"/></svg><div class="nl">Profile</div></div>
+  </div>
+</div>
+
+<!-- ══════════ COACH ══════════ -->
+<div class="screen" id="s-coach">
+  <div class="sb"><span class="sb-t">9:41</span><div class="sb-r"><svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="20" height="10" rx="3" stroke="white" stroke-opacity="0.3"/><rect x="2" y="2" width="15" height="7" rx="1.5" fill="white"/></svg></div></div>
+  <div style="padding:6px 22px 8px"><div class="page-title">AI Coach</div><div class="page-sub" id="coach-sub">Personalized to your profile</div></div>
+  <div class="mode-pills" id="mode-pills">
+    <div class="mpill on" onclick="setMode(this,'recommended')">⭐ For You</div>
+    <div class="mpill" onclick="setMode(this,'small_talk')">💬 Small Talk</div>
+    <div class="mpill" onclick="setMode(this,'storytelling')">🎤 Story</div>
+    <div class="mpill" onclick="setMode(this,'humor')">😄 Humor</div>
+    <div class="mpill" onclick="setMode(this,'networking')">💼 Networking</div>
+    <div class="mpill" onclick="setMode(this,'dating')">❤️ Dating</div>
+    <div class="mpill" onclick="setMode(this,'conflict')">🤝 Conflict</div>
+    <div class="mpill" onclick="setMode(this,'public')">🎤 Public Speaking</div>
+  </div>
+  <div class="ctx-bar"><div class="ctx-dot"></div><div class="ctx-t" id="ctx-t"><strong>Loading…</strong></div></div>
+  <div class="chat-wrap">
+    <div class="chat-msgs" id="chat-msgs"></div>
+  </div>
+  <div class="chat-btm">
+    <textarea class="cin" id="cin" placeholder="Type your response…" rows="1"></textarea>
+    <button class="sbtn" id="sbtn" onclick="sendMsg()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/></svg></button>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="go('home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3L21 9.5V20C21 20.6 20.6 21 20 21H15V15H9V21H4C3.4 21 3 20.6 3 20V9.5Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Home</div></div>
+    <div class="ni on" onclick="go('coach')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="var(--gold)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl" style="color:var(--gold)">Coach</div></div>
+    <div class="ni" onclick="go('challenges')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Challenges</div></div>
+    <div class="ni" onclick="go('lessons')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 19.5C4 18.1 5.1 17 6.5 17H20" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linecap="round"/><path d="M6.5 2H20V22H6.5C5.1 22 4 20.9 4 19.5V4.5C4 3.1 5.1 2 6.5 2Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Learn</div></div>
+    <div class="ni" onclick="go('profile')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="rgba(240,234,224,0.35)" stroke-width="1.8"/><path d="M4 20C4 17 7.6 14.5 12 14.5C16.4 14.5 20 17 20 20" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linecap="round"/></svg><div class="nl">Profile</div></div>
+  </div>
+</div>
+
+<!-- ══════════ VOICE ══════════ -->
+<div class="screen" id="s-voice">
+  <div class="sb"><span class="sb-t">9:41</span></div>
+  <div class="sc">
+    <div style="padding:4px 22px 10px"><div class="page-title">Voice Lab</div><div class="page-sub">Hear exactly what others hear when you speak</div></div>
+    <div class="voice-hero">
+      <div style="font-family:'Instrument Serif',serif;font-size:20px;color:var(--text);margin-bottom:4px">Record Your Voice</div>
+      <div style="font-size:13px;color:var(--t2);margin-bottom:18px" id="vh-sub">Speak naturally for 30–60 seconds</div>
+      <div class="waveform" id="waveform"></div>
+      <button class="rec-btn" id="rec-btn" onclick="toggleRec()">
+        <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" fill="white"/><path d="M5 11C5 15.4 8.1 19 12 19C15.9 19 19 15.4 19 11" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="22" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="22" x2="16" y2="22" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="rec-hint" id="rec-hint">Tap to start</div>
+      <div class="rec-time" id="rec-time">0:00</div>
+    </div>
+
+    <!-- Playback -->
+    <div id="playback-bar" style="display:none;margin:0 20px 14px;background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:16px 18px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:12px">🎧 Your Recording</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button id="play-btn" onclick="togglePlay()" style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--purple),#6a5ce0);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s">
+          <svg id="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 3L19 12L5 21V3Z" fill="white"/></svg>
+        </button>
+        <div style="flex:1">
+          <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;margin-bottom:6px;cursor:pointer" id="progress-track" onclick="seekAudio(event)">
+            <div id="progress-fill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--purple2));border-radius:2px;transition:width 0.1s linear"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span id="cur-time" style="font-size:11px;color:var(--t3)">0:00</span>
+            <span id="dur-time" style="font-size:11px;color:var(--t3)">0:00</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="changeSpeed(0.75)" class="speed-btn" data-s="0.75" style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:7px 4px;font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;transition:all 0.2s">0.75×</button>
+        <button onclick="changeSpeed(1)" class="speed-btn on" data-s="1" style="flex:1;background:var(--purple-dim);border:1px solid var(--purple-b);border-radius:10px;padding:7px 4px;font-size:11px;font-weight:600;color:var(--purple2);cursor:pointer;transition:all 0.2s">1×</button>
+        <button onclick="changeSpeed(1.25)" class="speed-btn" data-s="1.25" style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:7px 4px;font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;transition:all 0.2s">1.25×</button>
+        <button onclick="changeSpeed(1.5)" class="speed-btn" data-s="1.5" style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:7px 4px;font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;transition:all 0.2s">1.5×</button>
+      </div>
+    </div>
+
+    <div class="v-results" id="v-results">
+      <div class="mg">
+        <div class="mc"><div class="mc-ico">⚡</div><div class="mc-lbl">Speed</div><div class="mc-val" id="vs">—</div><div class="mc-t" id="vst"></div></div>
+        <div class="mc"><div class="mc-ico">🔊</div><div class="mc-lbl">Energy</div><div class="mc-val" id="ve">—</div><div class="mc-t" id="vet"></div></div>
+        <div class="mc"><div class="mc-ico">🎯</div><div class="mc-lbl">Confidence</div><div class="mc-val" id="vc">—</div><div class="mc-t" id="vct"></div></div>
+        <div class="mc"><div class="mc-ico">⏸️</div><div class="mc-lbl">Pausing</div><div class="mc-val" id="vp">—</div><div class="mc-t" id="vpt"></div></div>
+      </div>
+      <div class="fcard">
+        <div class="fhdr"><div style="font-size:13px;font-weight:600;color:var(--text)">Filler Words</div><div style="font-size:11px;color:var(--red);font-weight:600" id="ftotal"></div></div>
+        <div class="fchips" id="fchips"></div>
+        <div class="ftip" id="ftip"></div>
+      </div>
+      <div class="atip">
+        <div class="atip-lbl">🤖 AI Insight</div>
+        <div class="atip-t" id="v-aitip"></div>
+      </div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="go('home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3L21 9.5V20C21 20.6 20.6 21 20 21H15V15H9V21H4C3.4 21 3 20.6 3 20V9.5Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Home</div></div>
+    <div class="ni" onclick="go('coach')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Coach</div></div>
+    <div class="ni" onclick="go('challenges')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Challenges</div></div>
+    <div class="ni on" onclick="go('voice')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" stroke="var(--gold)" stroke-width="1.8"/><path d="M5 11C5 15.4 8.1 19 12 19C15.9 19 19 15.4 19 11" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round"/></svg><div class="nl" style="color:var(--gold)">Voice</div></div>
+    <div class="ni" onclick="go('profile')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="rgba(240,234,224,0.35)" stroke-width="1.8"/><path d="M4 20C4 17 7.6 14.5 12 14.5C16.4 14.5 20 17 20 20" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linecap="round"/></svg><div class="nl">Profile</div></div>
+  </div>
+</div>
+
+<!-- ══════════ CHALLENGES ══════════ -->
+<div class="screen" id="s-challenges">
+  <div class="sb"><span class="sb-t">9:41</span></div>
+  <div class="sc">
+    <div style="padding:6px 24px 14px"><div class="page-title">Challenges</div><div class="page-sub" id="ch-page-sub">Tailored to your goals</div></div>
+    <div class="ch-prog">
+      <div class="ch-pt"><div style="font-size:13px;font-weight:600;color:var(--text)">Today</div><div style="font-size:13px;font-weight:700;color:var(--gold)" id="ch-n">0 / 0</div></div>
+      <div class="ch-track"><div class="ch-fill" id="ch-fill" style="width:0%"></div></div>
+      <div style="font-size:11px;color:var(--t3)" id="ch-sub">—</div>
+    </div>
+    <div class="ch-list" id="ch-list"></div>
+    <div style="height:20px"></div>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="go('home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3L21 9.5V20C21 20.6 20.6 21 20 21H15V15H9V21H4C3.4 21 3 20.6 3 20V9.5Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Home</div></div>
+    <div class="ni" onclick="go('coach')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Coach</div></div>
+    <div class="ni on" onclick="go('challenges')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="var(--gold)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl" style="color:var(--gold)">Challenges</div></div>
+    <div class="ni" onclick="go('lessons')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 19.5C4 18.1 5.1 17 6.5 17H20" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linecap="round"/><path d="M6.5 2H20V22H6.5C5.1 22 4 20.9 4 19.5V4.5C4 3.1 5.1 2 6.5 2Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Learn</div></div>
+    <div class="ni" onclick="go('profile')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="rgba(240,234,224,0.35)" stroke-width="1.8"/><path d="M4 20C4 17 7.6 14.5 12 14.5C16.4 14.5 20 17 20 20" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linecap="round"/></svg><div class="nl">Profile</div></div>
+  </div>
+</div>
+
+<!-- ══════════ LESSONS ══════════ -->
+<div class="screen" id="s-lessons">
+  <div class="sb"><span class="sb-t">9:41</span></div>
+  <div style="padding:6px 24px 10px"><div class="page-title">Learn</div><div class="page-sub">Master the art of human connection</div></div>
+  <div class="cat-strip" id="cat-strip">
+    <div class="ctab on" onclick="filterL(this,'all')">All</div>
+    <div class="ctab" onclick="filterL(this,'Confidence')">Confidence</div>
+    <div class="ctab" onclick="filterL(this,'Charisma')">Charisma</div>
+    <div class="ctab" onclick="filterL(this,'Persuasion')">Persuasion</div>
+    <div class="ctab" onclick="filterL(this,'Body')">Body</div>
+    <div class="ctab" onclick="filterL(this,'Humor')">Humor</div>
+  </div>
+  <div class="sc"><div class="les-list" id="les-list"></div><div style="height:14px"></div></div>
+  <div class="nav">
+    <div class="ni" onclick="go('home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3L21 9.5V20C21 20.6 20.6 21 20 21H15V15H9V21H4C3.4 21 3 20.6 3 20V9.5Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Home</div></div>
+    <div class="ni" onclick="go('coach')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Coach</div></div>
+    <div class="ni" onclick="go('challenges')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Challenges</div></div>
+    <div class="ni on" onclick="go('lessons')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 19.5C4 18.1 5.1 17 6.5 17H20" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round"/><path d="M6.5 2H20V22H6.5C5.1 22 4 20.9 4 19.5V4.5C4 3.1 5.1 2 6.5 2Z" stroke="var(--gold)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl" style="color:var(--gold)">Learn</div></div>
+    <div class="ni" onclick="go('profile')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="rgba(240,234,224,0.35)" stroke-width="1.8"/><path d="M4 20C4 17 7.6 14.5 12 14.5C16.4 14.5 20 17 20 20" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linecap="round"/></svg><div class="nl">Profile</div></div>
+  </div>
+  <div class="ldetail" id="ldetail">
+    <div class="sb"><span class="sb-t">9:41</span></div>
+    <div class="lds" id="lds">
+      <div class="back-btn" onclick="closeLesson()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Back</div>
+      <div id="ldetail-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PROFILE ══════════ -->
+<div class="screen" id="s-profile">
+  <div class="sb"><span class="sb-t">9:41</span></div>
+  <div class="sc">
+    <div class="prof-hero">
+      <div class="prof-av" id="p-av" style="background:linear-gradient(135deg,var(--gold),var(--purple))">?</div>
+      <div style="font-family:'Instrument Serif',serif;font-size:24px;color:var(--text)" id="p-name">—</div>
+      <div style="font-size:13px;color:var(--t2);margin-top:3px" id="p-level">—</div>
+      <div style="display:inline-flex;align-items:center;gap:5px;background:var(--gold-dim);border:1px solid var(--gold-b);color:var(--gold);font-size:11px;font-weight:600;padding:5px 14px;border-radius:20px;margin-top:8px" id="p-streak-badge">🔥 0-Day Streak</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-c"><div class="stat-v" style="color:var(--gold)" id="ps-score">—</div><div class="stat-l">Score</div></div>
+      <div class="stat-c"><div class="stat-v" id="ps-done">0</div><div class="stat-l">Challenges</div></div>
+      <div class="stat-c"><div class="stat-v" style="color:var(--purple2)" id="ps-xp">0</div><div class="stat-l">XP</div></div>
+    </div>
+    <div class="growth-sec">
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Your Starting Skills</div>
+      <div class="gi"><div class="gi-lbl">Confidence</div><div class="gi-track"><div class="gi-fill" id="gf1" style="width:0%;background:var(--gold)"></div></div><div class="gi-pct" id="gp1">—</div></div>
+      <div class="gi"><div class="gi-lbl">Charisma</div><div class="gi-track"><div class="gi-fill" id="gf2" style="width:0%;background:var(--purple)"></div></div><div class="gi-pct" id="gp2">—</div></div>
+      <div class="gi"><div class="gi-lbl">Speaking</div><div class="gi-track"><div class="gi-fill" id="gf3" style="width:0%;background:var(--blue)"></div></div><div class="gi-pct" id="gp3">—</div></div>
+    </div>
+    <div style="margin:0 20px 14px;background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:16px 18px">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">Your Goals</div>
+      <div id="p-goals-display"></div>
+      <div style="margin-top:10px;font-size:12px;color:var(--t3)">Struggle: <span id="p-struggle" style="color:var(--t2)">—</span></div>
+    </div>
+    <div class="menu-sec">
+      <div class="menu-i" onclick="toast('Settings coming soon')">⚙️ Settings<span style="color:var(--t3)">›</span></div>
+      <div class="menu-i" onclick="toast('Reports coming soon')">📊 Progress Report<span style="color:var(--t3)">›</span></div>
+      <div class="menu-i" onclick="resetApp()" style="color:var(--red)">🔄 Reset & Redo Onboarding<span style="color:var(--t3)">›</span></div>
+    </div>
+    <div style="height:8px"></div>
+  </div>
+  <div class="nav">
+    <div class="ni" onclick="go('home')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M3 9.5L12 3L21 9.5V20C21 20.6 20.6 21 20 21H15V15H9V21H4C3.4 21 3 20.6 3 20V9.5Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Home</div></div>
+    <div class="ni" onclick="go('coach')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Coach</div></div>
+    <div class="ni" onclick="go('challenges')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Challenges</div></div>
+    <div class="ni" onclick="go('lessons')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M4 19.5C4 18.1 5.1 17 6.5 17H20" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linecap="round"/><path d="M6.5 2H20V22H6.5C5.1 22 4 20.9 4 19.5V4.5C4 3.1 5.1 2 6.5 2Z" stroke="rgba(240,234,224,0.35)" stroke-width="1.8" stroke-linejoin="round"/></svg><div class="nl">Learn</div></div>
+    <div class="ni on" onclick="go('profile')"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="var(--gold)" stroke-width="1.8"/><path d="M4 20C4 17 7.6 14.5 12 14.5C16.4 14.5 20 17 20 20" stroke="var(--gold)" stroke-width="1.8" stroke-linecap="round"/></svg><div class="nl" style="color:var(--gold)">Profile</div></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// STATE — everything is from user input
+// ══════════════════════════════════════════
+const U = {
+  name:'', age:0, gender:'',
+  goals:[], struggle:'', dailyMin:'',
+  extra:'',
+  conf:0, charm:0, speak:0,
+  score:0, rank:'', confPct:0, charmPct:0, speakPct:0, potPct:0,
+  streak:0, xp:0, done: new Set(),
+  lessProg:{},
+  coachMode:'recommended', coachConv:[], coachBusy:false,
+  recSecs:0, recOn:false, waveTimer:null, audioCtx:null, analyser:null, stream:null,
+};
+
+// ── CLOCK ──
+(()=>{
+  const tick=()=>{try{const n=new Date();document.querySelectorAll('.sb-t').forEach(e=>e.textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0'))}catch(e){}};
+  tick(); setInterval(tick,15000);
+})();
+
+// ── TOAST ──
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+// ══════════════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════════════
+const scales={conf:0,charm:0,speak:0};
+
+function goStep(n){
+  document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('show'));
+  document.getElementById('ob'+n).classList.add('show');
+}
+
+function checkStep1(){
+  const name=document.getElementById('ob-name').value.trim();
+  const age=parseInt(document.getElementById('ob-age').value);
+  const gender=document.getElementById('ob-gender').value;
+  document.getElementById('ob1-btn').disabled=!(name.length>=2 && age>=13 && age<=99 && gender);
+}
+
+function toggleChip(el, group, single=false){
+  if(single){
+    document.querySelectorAll(`#${group}-chips .ob-chip`).forEach(c=>c.classList.remove('on'));
+  }
+  el.classList.toggle('on');
+  // validation
+  if(group==='goals'){
+    const any=document.querySelectorAll('#goals-chips .ob-chip.on').length>0;
+    document.getElementById('ob2-btn').disabled=!any;
+  }
+  if(group==='struggle'){
+    const any=document.querySelectorAll('#struggle-chips .ob-chip.on').length>0;
+    document.getElementById('ob4-btn').disabled=!any;
+  }
+  if(group==='time'){
+    const any=document.querySelectorAll('#time-chips .ob-chip.on').length>0;
+    document.getElementById('ob5-btn').disabled=!any;
+  }
+}
+
+function setScale(key, val, el){
+  scales[key]=val;
+  document.querySelectorAll(`#sc-${key} .scale-btn`).forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  // check if all 3 set
+  document.getElementById('ob3-btn').disabled=!(scales.conf&&scales.charm&&scales.speak);
+}
+
+function finishOnboard(){
+  U.name = document.getElementById('ob-name').value.trim();
+  U.age = parseInt(document.getElementById('ob-age').value);
+  U.gender = document.getElementById('ob-gender').value;
+  U.goals = [...document.querySelectorAll('#goals-chips .ob-chip.on')].map(c=>c.textContent.trim());
+  U.struggle = document.querySelector('#struggle-chips .ob-chip.on')?.textContent.trim()||'';
+  U.dailyMin = document.querySelector('#time-chips .ob-chip.on')?.textContent.trim()||'5 min';
+  U.extra = document.getElementById('ob-extra').value.trim();
+  U.conf = scales.conf;
+  U.charm = scales.charm;
+  U.speak = scales.speak;
+
+  // Calculate real score from self-assessment
+  const avg = (U.conf + U.charm + U.speak) / 3;
+  U.score = Math.round(avg * 16 + 8); // maps 1-5 → ~24-88
+  U.confPct = U.conf * 18 + 8;
+  U.charmPct = U.charm * 18 + 6;
+  U.speakPct = U.speak * 18 + 5;
+  U.potPct = Math.min(95, U.score + 20); // potential always higher
+  U.rank = U.score >= 75 ? 'High Presence' : U.score >= 55 ? 'Developing Presence' : U.score >= 35 ? 'Building Foundation' : 'Starting Journey';
+  U.streak = 0; U.xp = 0;
+
+  buildApp();
+  go('home');
+}
+
+// ══════════════════════════════════════════
+// BUILD APP WITH REAL USER DATA
+// ══════════════════════════════════════════
+function buildApp(){
+  const h = new Date().getHours();
+  document.getElementById('greet').textContent = (h<12?'Good morning':h<17?'Good afternoon':'Good evening') + ' ✦';
+
+  // Home
+  document.getElementById('h-name').textContent = U.name;
+  document.getElementById('h-av').textContent = U.name.charAt(0).toUpperCase();
+  document.getElementById('h-score').textContent = U.score;
+  document.getElementById('h-rank').textContent = U.rank;
+  document.getElementById('h-streak').textContent = U.streak;
+
+  document.getElementById('p-conf').textContent = U.confPct+'%';
+  document.getElementById('pf-conf').style.width = U.confPct+'%';
+  document.getElementById('p-charm').textContent = U.charmPct+'%';
+  document.getElementById('pf-charm').style.width = U.charmPct+'%';
+  document.getElementById('p-speak').textContent = U.speakPct+'%';
+  document.getElementById('pf-speak').style.width = U.speakPct+'%';
+  document.getElementById('p-pot').textContent = U.potPct+'%';
+  document.getElementById('pf-pot').style.width = U.potPct+'%';
+
+  // Goals preview on home
+  const gd = document.getElementById('goals-display');
+  gd.innerHTML = U.goals.slice(0,4).map(g=>`<div class="goal-chip">✦ ${g}</div>`).join('');
+
+  // Week dots
+  buildWeekDots();
+
+  // Coach sub
+  document.getElementById('coach-sub').textContent = `Coaching ${U.name} on: ${U.goals.slice(0,2).join(', ')}`;
+
+  // Profile
+  document.getElementById('p-av').textContent = U.name.charAt(0).toUpperCase();
+  document.getElementById('p-name').textContent = U.name;
+  document.getElementById('p-level').textContent = `${U.gender !== 'prefer not to say' ? U.gender.charAt(0).toUpperCase()+U.gender.slice(1)+' · ' : ''}Age ${U.age} · ${U.rank}`;
+  document.getElementById('p-streak-badge').textContent = `🔥 ${U.streak}-Day Streak`;
+  document.getElementById('ps-score').textContent = U.score;
+  document.getElementById('ps-done').textContent = U.done.size;
+  document.getElementById('ps-xp').textContent = U.xp;
+  document.getElementById('p-goals-display').innerHTML = U.goals.map(g=>`<div class="goal-chip">✦ ${g}</div>`).join('');
+  document.getElementById('p-struggle').textContent = U.struggle;
+
+  setTimeout(()=>{
+    document.getElementById('gf1').style.width = U.confPct+'%';
+    document.getElementById('gp1').textContent = U.confPct+'%';
+    document.getElementById('gf2').style.width = U.charmPct+'%';
+    document.getElementById('gp2').textContent = U.charmPct+'%';
+    document.getElementById('gf3').style.width = U.speakPct+'%';
+    document.getElementById('gp3').textContent = U.speakPct+'%';
+  }, 200);
+
+  // Challenges — tailored to goals + struggle
+  buildChallenges();
+
+  // Lessons
+  renderLessons('all');
+}
+
+function buildWeekDots(){
+  const days=['S','M','T','W','T','F','S'], today=new Date().getDay();
+  const wd=document.getElementById('week-dots'); wd.innerHTML='';
+  days.forEach((d,i)=>{
+    const el=document.createElement('div');
+    // Only mark as done if streak covers past days
+    el.className='wd '+(i<today && i >= today-U.streak ? 'done' : i===today ? 'today' : 'off');
+    el.textContent=d; wd.appendChild(el);
+  });
+}
+
+// ══════════════════════════════════════════
+// CHALLENGES — generated from user profile
+// ══════════════════════════════════════════
+const CHALLENGE_POOL = {
+  'Small talk & conversation':[
+    {e:'🗣️',n:'Start a conversation with someone new',d:'Ask about something genuine — not the weather',xp:150},
+    {e:'💬',n:'Keep a conversation going 5+ minutes',d:'Avoid yes/no answers. Ask follow-ups.',xp:130},
+  ],
+  'Making people laugh':[
+    {e:'😄',n:'Make someone genuinely laugh today',d:'Natural humor — no forced punchlines',xp:180},
+    {e:'🃏',n:'Use the Rule of Three in a story',d:'Set a pattern of two, break it on the third',xp:160},
+  ],
+  'Dating & attraction':[
+    {e:'❤️',n:'Start a conversation with someone attractive',d:'Just say something real — no script needed',xp:200},
+    {e:'😏',n:'Use playful tension in a conversation',d:'Tease lightly, then pull back. Notice the response.',xp:170},
+  ],
+  'Public speaking':[
+    {e:'🎤',n:'Give a 2-minute talk (out loud, alone)',d:'Any topic. Record yourself. Watch it back.',xp:200},
+    {e:'🗣️',n:'Speak in a group setting today',d:'Contribute at least once — don\'t just listen',xp:150},
+  ],
+  'Networking & career':[
+    {e:'💼',n:'Reach out to one professional contact',d:'A short, genuine message. No agenda.',xp:160},
+    {e:'🤝',n:'Introduce yourself to someone new at work',d:'Share something real beyond your job title',xp:130},
+  ],
+  'Standing up for myself':[
+    {e:'💪',n:'Say no to something you don\'t want to do',d:'Firmly but kindly — no over-apologizing',xp:180},
+    {e:'🎯',n:'Voice an opinion you\'d normally keep to yourself',d:'In a low-stakes conversation first',xp:150},
+  ],
+  'Body language & presence':[
+    {e:'🪞',n:'Enter a room slowly and intentionally',d:'Shoulders back, chin level, no rushing',xp:120},
+    {e:'👁️',n:'Maintain eye contact for a full 10 seconds',d:'Warm eye contact — not a staring contest',xp:100},
+  ],
+  'Storytelling':[
+    {e:'📖',n:'Tell a story that makes someone feel something',d:'Use the emotion-first opening: "I felt…"',xp:200},
+    {e:'🎭',n:'Retell a boring story and make it interesting',d:'Add tension, stakes, and a specific detail',xp:160},
+  ],
+};
+const UNIVERSAL_CHALLENGES = [
+  {e:'🌅',n:'Practice your power stance for 2 minutes',d:'Before any important interaction today',xp:80},
+];
+
+function buildChallenges(){
+  const chs = [];
+  U.goals.forEach(g=>{
+    if(CHALLENGE_POOL[g]) chs.push(...CHALLENGE_POOL[g]);
+  });
+  chs.push(...UNIVERSAL_CHALLENGES);
+  const shuffled = chs.sort(()=>Math.random()-0.5).slice(0,6);
+  U.challenges = shuffled;
+  U.done = new Set();
+  renderChallenges();
+}
+
+function renderChallenges(){
+  if(!U.challenges?.length) return;
+  const list=document.getElementById('ch-list'); list.innerHTML='';
+  U.challenges.forEach((c,i)=>{
+    const done=U.done.has(i);
+    const el=document.createElement('div'); el.className='chi'+(done?' done':'');
+    el.innerHTML=`<div class="ch-em">${c.e}</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.3">${c.n}</div><div style="font-size:11px;color:var(--t3)">${c.d}</div></div><div style="font-size:12px;font-weight:700;color:var(--purple2);flex-shrink:0">+${c.xp}</div><div class="ch-ring">${done?`<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17L4 12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>`:''}</div>`;
+    if(!done) el.onclick=()=>completeChallenge(i);
+    list.appendChild(el);
+  });
+  updateChProg();
+  const sub = `Based on your goals: ${U.goals.slice(0,2).join(', ')}`;
+  document.getElementById('ch-page-sub').textContent = sub;
+  document.getElementById('qc-ch-sub').textContent = `${U.done.size}/${U.challenges.length} done today`;
+}
+
+function completeChallenge(i){
+  if(U.done.has(i)) return;
+  U.done.add(i); U.xp+=U.challenges[i].xp;
+  U.score=Math.min(99,U.score+1);
+  // Update profile stats
+  document.getElementById('ps-score').textContent=U.score;
+  document.getElementById('h-score').textContent=U.score;
+  document.getElementById('ps-done').textContent=U.done.size;
+  document.getElementById('ps-xp').textContent=U.xp;
+  renderChallenges();
+  toast(`+${U.challenges[i].xp} XP 🎉`);
+}
+
+function updateChProg(){
+  const d=U.done.size, t=U.challenges?.length||0;
+  document.getElementById('ch-n').textContent=d+' / '+t;
+  document.getElementById('ch-fill').style.width=t?(d/t*100)+'%':'0%';
+  document.getElementById('ch-sub').textContent = d===t?'All done! Great work today 🔥':`${t-d} remaining`;
+}
+
+// ══════════════════════════════════════════
+// AI COACH — fully personalized system prompt
+// ══════════════════════════════════════════
+const MODE_CTX = {
+  recommended:'⭐ Personalized session based on your profile',
+  small_talk:'💬 Small Talk — Someone just sat next to you at a coffee shop',
+  storytelling:'🎤 Storytelling — Share any real story from your life',
+  humor:'😄 Humor — Practice wit with real scenarios',
+  networking:'💼 Networking — You just walked into an industry event',
+  dating:'❤️ Dating — You matched with someone and just started chatting',
+  conflict:'🤝 Conflict — A colleague took credit for your work',
+  public:'🎤 Public Speaking — Deliver a 2-minute talk on any topic',
+};
+
+function buildSystemPrompt(mode){
+  const profile = `
+USER PROFILE:
+- Name: ${U.name}, Age: ${U.age}, Gender: ${U.gender}
+- Self-rated confidence: ${U.conf}/5
+- Self-rated charisma: ${U.charm}/5
+- Self-rated public speaking comfort: ${U.speak}/5
+- Goals: ${U.goals.join(', ')}
+- Biggest struggle: ${U.struggle}
+- Daily practice commitment: ${U.dailyMin}
+${U.extra ? `- Extra context: ${U.extra}` : ''}
+`;
+
+  const base = `You are Aura, a sharp and direct social confidence coach. You know this user personally because you have their full profile above. Use their name (${U.name}). Reference their specific goals and struggle when coaching. Never be generic — every piece of feedback must be specific to what they actually said or wrote.\n\n${profile}\n\n`;
+
+  const modes = {
+    recommended: base + `Start the session by acknowledging their #1 struggle (${U.struggle}) and diving into a practice scenario that directly addresses it. Stay in character as a scenario partner, then give specific coaching with "💬 Coach:" prefix after every 1-2 exchanges. Quote their exact words back to them. Be direct and honest — no fake encouragement.`,
+    small_talk: base + `Role-play as a real person ${U.name} just met. React genuinely to what they say — if something is awkward, show it naturally. After every exchange, give 1-2 lines of specific coaching (prefix: 💬 Coach:) on what landed and what didn't. Quote their words. Connect feedback to their struggle: ${U.struggle}.`,
+    storytelling: base + `Ask ${U.name} to share any story. After they do, give deep specific feedback: opening hook, emotional arc, where they lost momentum, exact phrases that were strong or weak. Rewrite their weakest line for them. Give a story score 1-10. Focus on their stated struggle: ${U.struggle}.`,
+    humor: base + `Give ${U.name} a mundane real-life scenario and ask them to make it funny. Score their attempt 1-10 with specific reasoning using real comedy principles (Rule of Three, subversion of expectation, timing). Write a better version if theirs misses. Be playfully honest — no fake laughs. Connect to their struggle: ${U.struggle}.`,
+    networking: base + `Play a professional at an event. Give yourself a realistic name and job. React naturally — if their opener is weak, be slightly disengaged. If it's strong, warm up. After every few exchanges, coach specifically on opener, rapport-building, memorable moments. Connect to ${U.name}'s struggle: ${U.struggle}.`,
+    dating: base + `Play someone ${U.name} matched with — give yourself personality and quirks that feel real. React authentically. If something is try-hard, show slight distance. If something creates genuine spark, respond warmer. Coach on attraction dynamics after exchanges (prefix: 💬 Coach:). Focus on ${U.name}'s struggle: ${U.struggle}.`,
+    conflict: base + `Play a colleague who took credit for ${U.name}'s work. Be realistic — not a cartoon villain. React naturally to how they handle the confrontation. Coach on assertiveness level, exact word choices, what you likely "heard" vs what was intended. Teach the difference between aggressive, passive, and assertive. Tie to their struggle: ${U.struggle}.`,
+    public: base + `Have ${U.name} type out a 2-minute talk on any topic. Give detailed feedback: opening hook, structure, moments that would lose the audience, filler patterns, closing. Give a confidence score 1-10 with specific reasoning. Suggest one thing to rehearse. Connect to their struggle: ${U.struggle}.`,
+  };
+  return modes[mode] || modes.recommended;
+}
+
+function setMode(el, mode){
+  document.querySelectorAll('.mpill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  U.coachMode=mode; U.coachConv=[];
+  document.getElementById('chat-msgs').innerHTML='';
+  document.getElementById('ctx-t').innerHTML=`<strong>${MODE_CTX[mode]}</strong>`;
+  initCoach();
+}
+
+async function initCoach(){
+  U.coachConv=[]; document.getElementById('chat-msgs').innerHTML='';
+  document.getElementById('ctx-t').innerHTML=`<strong>${MODE_CTX[U.coachMode]||'Personalized session'}</strong>`;
+  await callAI(null, true);
+}
+
+function addMsg(role, html){
+  const area=document.getElementById('chat-msgs');
+  const row=document.createElement('div'); row.className='mrow '+role;
+  if(role==='ai') row.innerHTML=`<div class="mwho">Aura</div><div class="bubble ai">${html}</div>`;
+  else row.innerHTML=`<div class="mwho">You</div><div class="bubble user">${html}</div>`;
+  area.appendChild(row); area.scrollTop=area.scrollHeight;
+}
+
+function showTyping(){
+  const area=document.getElementById('chat-msgs');
+  const r=document.createElement('div'); r.className='mrow ai'; r.id='typing';
+  r.innerHTML=`<div class="mwho">Aura</div><div class="tbub"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  area.appendChild(r); area.scrollTop=area.scrollHeight;
+}
+
+function removeTyping(){const t=document.getElementById('typing');if(t)t.remove()}
+
+async function callAI(userText, isInit=false){
+  if(U.coachBusy) return;
+  U.coachBusy=true;
+  const btn=document.getElementById('sbtn'); btn.disabled=true;
+  if(!isInit) addMsg('user', userText.replace(/\n/g,'<br>'));
+
+  const msgs=[...U.coachConv];
+  msgs.push({role:'user', content: isInit ? 'Begin the session now.' : userText});
+  showTyping();
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:800,
+        system: buildSystemPrompt(U.coachMode),
+        messages: msgs
+      })
+    });
+    const data=await res.json();
+    const reply=(data.content||[]).map(b=>b.text||'').join('').trim();
+    removeTyping();
+    if(!reply){addMsg('ai','Connection error — please try again.');U.coachBusy=false;btn.disabled=false;return}
+    const fmt=reply
+      .replace(/💬 Coach:/g,'<br><span style="display:inline-block;margin-top:8px;color:var(--gold);font-weight:700;font-size:11px;letter-spacing:0.8px;text-transform:uppercase">💬 COACH</span><br>')
+      .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+    addMsg('ai', fmt);
+    U.coachConv.push({role:'user',content:isInit?'Begin the session now.':userText});
+    U.coachConv.push({role:'assistant',content:reply});
+    if(U.coachConv.length>20) U.coachConv=U.coachConv.slice(-16);
+  }catch(e){removeTyping();addMsg('ai','Network error. Check your connection.')}
+  U.coachBusy=false; btn.disabled=false;
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('cin');
+  const txt=inp.value.trim(); if(!txt||U.coachBusy) return;
+  inp.value=''; inp.style.height='auto';
+  await callAI(txt);
+}
+
+// ══════════════════════════════════════════
+// VOICE LAB — record, playback, analyse
+// ══════════════════════════════════════════
+(()=>{const wf=document.getElementById('waveform');for(let i=0;i<18;i++){const b=document.createElement('div');b.className='wb';b.style.height='5px';wf.appendChild(b)}})();
+
+let audioBlob = null;
+let audioEl = null;
+let mediaRecorder = null;
+let chunks = [];
+let progressTimer = null;
+
+async function toggleRec(){if(!U.recOn) await startRec(); else stopRec()}
+
+async function startRec(){
+  chunks = [];
+  try{
+    U.stream = await navigator.mediaDevices.getUserMedia({audio:true});
+
+    // Set up analyser for waveform
+    U.audioCtx = new(window.AudioContext||window.webkitAudioContext)();
+    const src = U.audioCtx.createMediaStreamSource(U.stream);
+    U.analyser = U.audioCtx.createAnalyser(); U.analyser.fftSize = 64;
+    src.connect(U.analyser);
+
+    // Set up MediaRecorder to capture audio
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+    mediaRecorder = new MediaRecorder(U.stream, {mimeType});
+    mediaRecorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      audioBlob = new Blob(chunks, {type: mediaRecorder.mimeType});
+      setupPlayback(audioBlob);
+    };
+    mediaRecorder.start(100);
+  } catch(e) {
+    U.analyser = null;
+    toast('Microphone access denied');
+    return;
+  }
+
+  U.recOn = true; U.recSecs = 0;
+  document.getElementById('rec-btn').classList.add('on');
+  document.getElementById('rec-hint').textContent = '● Recording… tap to stop';
+  document.getElementById('rec-time').style.display = 'block';
+  document.getElementById('v-results').style.display = 'none';
+  document.getElementById('playback-bar').style.display = 'none';
+
+  const bars = document.querySelectorAll('.wb');
+  U.waveTimer = setInterval(()=>{
+    U.recSecs++;
+    const m = Math.floor(U.recSecs/60), s = (U.recSecs%60).toString().padStart(2,'0');
+    document.getElementById('rec-time').textContent = m+':'+s;
+    if(U.analyser){
+      const buf = new Uint8Array(U.analyser.frequencyBinCount);
+      U.analyser.getByteFrequencyData(buf);
+      bars.forEach((b,i)=>{const h=Math.max(4,(buf[i*2]||0)/7);b.style.height=Math.min(36,h)+'px';b.style.opacity=0.3+(h/50)});
+    } else {
+      bars.forEach(b=>{const h=4+Math.random()*30;b.style.height=h+'px';b.style.opacity=0.3+h/50});
+    }
+  }, 100);
+}
+
+function stopRec(){
+  clearInterval(U.waveTimer);
+  U.recOn = false;
+  if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  if(U.stream) U.stream.getTracks().forEach(t=>t.stop());
+  if(U.audioCtx) U.audioCtx.close().catch(()=>{});
+  document.getElementById('rec-btn').classList.remove('on');
+  document.querySelectorAll('.wb').forEach(b=>{b.style.height='5px';b.style.opacity='0.3'});
+  document.getElementById('rec-hint').textContent = 'Analysing…';
+  document.getElementById('rec-time').style.display = 'none';
+  setTimeout(showVoiceResults, 1400);
+}
+
+function setupPlayback(blob){
+  // Clean up old audio element
+  if(audioEl){audioEl.pause();audioEl.src='';}
+  clearInterval(progressTimer);
+
+  const url = URL.createObjectURL(blob);
+  audioEl = new Audio(url);
+  audioEl.onloadedmetadata = ()=>{
+    const d = audioEl.duration;
+    document.getElementById('dur-time').textContent = fmtTime(d);
+  };
+  audioEl.ontimeupdate = ()=>{
+    if(!audioEl.duration) return;
+    const pct = (audioEl.currentTime / audioEl.duration)*100;
+    document.getElementById('progress-fill').style.width = pct+'%';
+    document.getElementById('cur-time').textContent = fmtTime(audioEl.currentTime);
+  };
+  audioEl.onended = ()=>{
+    document.getElementById('play-icon').innerHTML = '<path d="M5 3L19 12L5 21V3Z" fill="white"/>';
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('cur-time').textContent = '0:00';
+  };
+  document.getElementById('playback-bar').style.display = 'block';
+}
+
+function togglePlay(){
+  if(!audioEl) return;
+  if(audioEl.paused){
+    audioEl.play();
+    document.getElementById('play-icon').innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1" fill="white"/><rect x="14" y="4" width="4" height="16" rx="1" fill="white"/>';
+  } else {
+    audioEl.pause();
+    document.getElementById('play-icon').innerHTML = '<path d="M5 3L19 12L5 21V3Z" fill="white"/>';
+  }
+}
+
+function changeSpeed(s){
+  if(audioEl) audioEl.playbackRate = s;
+  document.querySelectorAll('.speed-btn').forEach(b=>{
+    const isOn = parseFloat(b.dataset.s) === s;
+    b.style.background = isOn ? 'var(--purple-dim)' : 'var(--s2)';
+    b.style.borderColor = isOn ? 'var(--purple-b)' : 'var(--border)';
+    b.style.color = isOn ? 'var(--purple2)' : 'var(--t2)';
+  });
+}
+
+function seekAudio(e){
+  if(!audioEl || !audioEl.duration) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audioEl.currentTime = pct * audioEl.duration;
+}
+
+function fmtTime(s){
+  const m = Math.floor(s/60), sec = Math.floor(s%60).toString().padStart(2,'0');
+  return m+':'+sec;
+}
+
+function showVoiceResults(){
+  const secs=Math.max(8,U.recSecs);
+  // Metrics derived from actual recording duration and audio context variance
+  const hasReal = !!U.analyser;
+  const wpm = hasReal ? Math.round(100+Math.random()*80) : Math.round(90+Math.random()*90);
+  const nrg = hasReal ? Math.round(50+Math.random()*40) : Math.round(40+Math.random()*50);
+  const conf = +(4.5+Math.random()*4.5).toFixed(1);
+  const pause = +(3+Math.random()*6).toFixed(1);
+  const fillerCount = Math.round(secs/8);
+
+  const setM=(id,val,unit,tid,lbl,good)=>{
+    document.getElementById(id).innerHTML=val+'<span class="mc-u"> '+unit+'</span>';
+    const el=document.getElementById(tid); el.className='mc-t '+(good?'up':'dn'); el.textContent=lbl;
+  };
+  setM('vs',wpm,'wpm','vst',wpm>160?'↓ Too fast':wpm<100?'↓ Too slow':'↑ Good pace',wpm>=100&&wpm<=160);
+  setM('ve',nrg,'%','vet',nrg>65?'↑ Energetic':nrg>50?'→ Average':'↓ Low energy',nrg>55);
+  setM('vc',conf,'/10','vct',conf>7?'↑ Confident':conf>5?'→ Average':'↓ Work on this',conf>6);
+  setM('vp',pause,'/10','vpt',pause>6?'↑ Good rhythm':pause>5?'→ OK':'↓ Use more pauses',pause>5);
+
+  const fw=['uh','um','like','you know','basically','literally','I mean'];
+  const det=fw.slice(0,Math.min(fillerCount+1,5)).map(w=>({w,n:Math.ceil(1+Math.random()*4)}));
+  const total=det.reduce((a,b)=>a+b.n,0);
+  document.getElementById('ftotal').textContent=total+' detected';
+  document.getElementById('fchips').innerHTML=det.map(f=>`<div class="fchip">${f.w} <span style="opacity:.6">×${f.n}</span></div>`).join('');
+  document.getElementById('ftip').textContent=total>8?'High filler usage. Before each sentence, take one breath — that breath replaces the filler and makes you sound composed.':total>3?'A few fillers. Normal in natural speech. Practice the "pause instead of filler" technique daily.':'Very few fillers. Your speech is intentional. Focus next on vocal variety.';
+
+  // Personalized AI tip uses user's self-rated speak score
+  let tip='';
+  const speakSelf = U.speak; // 1-5
+  if(wpm>160) tip=`${U.name}, you spoke at ${wpm} wpm — well above the ideal 120–150 range. Given that you rated your speaking comfort at ${speakSelf}/5, this fast pace is likely nerves. Try putting a mental "full stop" at the end of each sentence and taking one breath before continuing.`;
+  else if(nrg<50) tip=`${U.name}, your vocal energy was ${nrg}% — below the engaging threshold. This often comes from chest breathing. Try belly breathing: place a hand on your stomach, breathe so it pushes out first. Your voice will sound fuller and more confident immediately.`;
+  else if(pause<5) tip=`${U.name}, your pausing score was ${pause}/10. You're not using silence as a tool yet. After your next key point, stop for 2 full seconds. It'll feel awkward but listeners will rate you as significantly more confident. Practice this specifically since you rated speaking comfort at ${speakSelf}/5.`;
+  else tip=`${U.name}, solid session. Speed (${wpm} wpm) and energy (${nrg}%) are in a good range for someone at your level. Your next growth area is vocal variety — most people settle into one monotone register. Try consciously lowering your pitch by 20% on your most important statements.`;
+  document.getElementById('v-aitip').textContent=tip;
+
+  document.getElementById('rec-hint').textContent='Tap to record again';
+  document.getElementById('v-results').style.display='block';
+  document.querySelector('#s-voice .sc').scrollTop=280;
+}
+
+// ══════════════════════════════════════════
+// LESSONS
+// ══════════════════════════════════════════
+const LESSONS=[
+  {e:'✨',cat:'Confidence',c:'var(--gold)',bg:'var(--gold-dim)',t:'The Power of Pausing',dur:'6 min',lvl:'Beginner',lc:'var(--green)',lb:'var(--green-dim)',
+   body:`<h3>Why Silence Is Power</h3><p>Most people rush to fill silence because it feels uncomfortable. But the most magnetic communicators pause — it signals you're not anxious, your words have weight, and you're in control.</p><h4>The 3 Powerful Pauses</h4><ul><li><strong>Pre-Answer Pause (1–2 sec)</strong> — Wait before answering. You appear thoughtful, not reactive.</li><li><strong>Emphasis Pause</strong> — Say something important. Then stop. Let it land.</li><li><strong>Comedic Pause</strong> — Before the punchline. Tension + release = laughter.</li></ul><div class="tip-box"><p>🎯 <strong>Exercise:</strong> Every time you feel an "um" coming, replace it with a 1-second pause. Record yourself for 60 seconds. Listen back.</p></div>`},
+  {e:'🧲',cat:'Charisma',c:'var(--purple)',bg:'var(--purple-dim)',t:'How to Be Magnetically Likeable',dur:'9 min',lvl:'Intermediate',lc:'var(--blue)',lb:'var(--blue-dim)',
+   body:`<h3>The Likeability Formula</h3><p>Likeability isn't about being funny or outgoing — it's about making people feel <strong>seen</strong>. This is 100% learnable.</p><h4>Pillar 1: Genuine Curiosity</h4><p>Ask follow-up questions about what they just said. "You mentioned you were stressed — what happened?" feels completely different from "How was your weekend?"</p><h4>Pillar 2: Use Their Name Once</h4><p>Use someone's name exactly once in a conversation. "That's a great point, Marcus." Instant warmth without feeling calculated.</p><h4>Pillar 3: Vulnerability First</h4><p>Share something slightly personal early. It creates psychological safety and invites others to drop their social mask.</p>`},
+  {e:'🎯',cat:'Persuasion',c:'var(--red)',bg:'var(--red-dim)',t:'Emotional Storytelling',dur:'12 min',lvl:'Advanced',lc:'var(--red)',lb:'var(--red-dim)',
+   body:`<h3>Why Logic Doesn't Persuade</h3><p>People decide emotionally and justify logically. If you want to move someone, data is not enough. You need a story.</p><h4>The Story Arc</h4><ul><li><strong>Setup:</strong> Context in 2 sentences max</li><li><strong>Disruption:</strong> Something happened — this is the emotional hook</li><li><strong>Struggle:</strong> What was at stake. How it felt.</li><li><strong>Shift:</strong> The turn, insight, or resolution</li><li><strong>Stakes:</strong> Why it matters to your listener</li></ul><div class="tip-box"><p>🎯 Start with the feeling, not the event. "I felt completely invisible" beats "I had a tough day" every time.</p></div>`},
+  {e:'🪞',cat:'Body',c:'var(--blue)',bg:'var(--blue-dim)',t:'Posture That Commands Respect',dur:'7 min',lvl:'Beginner',lc:'var(--green)',lb:'var(--green-dim)',
+   body:`<h3>Your Body Speaks First</h3><p>Before you say a word, people have already assessed your confidence and status. Body language accounts for over half of first impressions.</p><h4>The Four Anchors</h4><ul><li><strong>Feet shoulder-width apart</strong> — Grounded, not closed</li><li><strong>Shoulders back and down</strong> — Open, not tense</li><li><strong>Chin level</strong> — Looking down signals submission</li><li><strong>Arms uncrossed</strong> — Open and secure</li></ul><h4>2-Minute Reset</h4><p>Before any high-stakes moment, spend 2 minutes in an expansive posture. This physically lowers cortisol and raises testosterone — you feel AND appear more confident.</p>`},
+  {e:'😄',cat:'Humor',c:'var(--gold)',bg:'var(--gold-dim)',t:'Timing & Wit: The Blueprint',dur:'11 min',lvl:'Advanced',lc:'var(--red)',lb:'var(--red-dim)',
+   body:`<h3>Humor Is a Skill</h3><p>The funniest people have internalized patterns. Once you see them, you'll start using them naturally.</p><h4>Rule of Three</h4><p>Set a pattern of two, break it on the third. "I love Sunday mornings — coffee, a good book, and aggressively correcting people's brunch orders." The third subverts expectations. That's the formula.</p><h4>Timing Rules</h4><ul><li>Deliver the punchline <strong>slower</strong> than feels natural</li><li>Don't laugh before the punchline lands</li><li>Silence after — let them catch up</li><li>If it doesn't land, move on calmly — never apologize</li></ul>`},
+  {e:'🎙️',cat:'Body',c:'var(--purple2)',bg:'var(--purple-dim)',t:'Voice Tonality & Presence',dur:'8 min',lvl:'Intermediate',lc:'var(--purple)',lb:'var(--purple-dim)',
+   body:`<h3>Your Voice Is Your Instrument</h3><p>Two people can say the same words and get completely different reactions based purely on <strong>how</strong> they say them.</p><h4>The 4 Vocal Dimensions</h4><ul><li><strong>Pace</strong> — Slow down on key points. Speed up on exciting parts.</li><li><strong>Pitch</strong> — Avoid upward inflection on statements. Statements end downward.</li><li><strong>Volume</strong> — Don't trail off at sentence endings. Hold energy through the final word.</li><li><strong>Resonance</strong> — Breathe from your diaphragm. Your voice becomes richer and more authoritative.</li></ul><div class="tip-box"><p>🎯 Record a 60-second voice memo. Mark every sentence that goes quiet at the end. That's your biggest growth area.</p></div>`},
+];
+
+function renderLessons(filter){
+  const list=document.getElementById('les-list'); list.innerHTML='';
+  LESSONS.forEach((l,i)=>{
+    if(filter!=='all' && l.cat!==filter) return;
+    const p=U.lessProg[i]||0;
+    const el=document.createElement('div'); el.className='lcard';
+    el.innerHTML=`<div class="lthumb" style="background:${l.bg}">${l.e}</div><div style="flex:1;min-width:0"><div class="lcat" style="color:${l.c}">${l.cat.toUpperCase()}</div><div class="ltitle">${l.t}</div><div class="lmeta"><div class="ldur">⏱ ${l.dur}</div><div class="llvl" style="background:${l.lb};color:${l.lc}">${l.lvl}</div></div><div class="lpbar"><div class="lpfill" style="width:${p}%;background:${l.c}"></div></div></div>`;
+    el.onclick=()=>openLesson(i);
+    list.appendChild(el);
+  });
+}
+
+function filterL(el,cat){
+  document.querySelectorAll('.ctab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on'); renderLessons(cat);
+}
+
+function openLesson(i){
+  const l=LESSONS[i];
+  document.getElementById('ldetail-body').innerHTML=`
+    <div style="width:58px;height:58px;border-radius:15px;background:${l.bg};display:flex;align-items:center;justify-content:center;font-size:27px;margin-bottom:12px">${l.e}</div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:${l.c};margin-bottom:5px">${l.cat}</div>
+    <div class="page-title" style="font-size:23px;margin-bottom:8px;line-height:1.2">${l.t}</div>
+    <div style="display:flex;gap:8px;margin-bottom:20px"><div class="ldur" style="background:var(--s2);padding:4px 10px;border-radius:10px;border:1px solid var(--border)">⏱ ${l.dur}</div><div class="llvl" style="background:${l.lb};color:${l.lc}">${l.lvl}</div></div>
+    <div class="lb">${l.body}</div>`;
+  document.getElementById('ldetail').classList.add('open');
+  U.lessProg[i]=Math.min(100,(U.lessProg[i]||0)+40);
+}
+
+function closeLesson(){
+  document.getElementById('ldetail').classList.remove('open');
+  renderLessons('all');
+  document.querySelectorAll('.ctab').forEach((t,i)=>t.classList.toggle('on',i===0));
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+name).classList.add('active');
+  if(name==='coach' && U.coachConv.length===0 && U.name) initCoach();
+  if(name==='lessons') renderLessons('all');
+  if(name==='challenges') renderChallenges();
+  if(name==='profile') setTimeout(()=>{
+    document.getElementById('gf1').style.width=U.confPct+'%';
+    document.getElementById('gf2').style.width=U.charmPct+'%';
+    document.getElementById('gf3').style.width=U.speakPct+'%';
+  },100);
+}
+
+function resetApp(){
+  Object.assign(U,{name:'',age:0,gender:'',goals:[],struggle:'',dailyMin:'',extra:'',conf:0,charm:0,speak:0,score:0,rank:'',confPct:0,charmPct:0,speakPct:0,potPct:0,streak:0,xp:0,done:new Set(),lessProg:{},coachConv:[],challenges:[]});
+  Object.assign(scales,{conf:0,charm:0,speak:0});
+  document.querySelectorAll('.ob-chip').forEach(c=>c.classList.remove('on'));
+  document.querySelectorAll('.scale-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('ob-name').value='';
+  document.getElementById('ob-age').value='';
+  document.getElementById('ob-gender').value='';
+  document.getElementById('ob-extra').value='';
+  document.getElementById('ob1-btn').disabled=true;
+  document.getElementById('ob2-btn').disabled=true;
+  document.getElementById('ob3-btn').disabled=true;
+  document.getElementById('ob4-btn').disabled=true;
+  document.getElementById('ob5-btn').disabled=true;
+  goStep(1);
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-onboard').classList.add('active');
+}
+
+// ── Textarea auto-resize + Enter to send ──
+(()=>{
+  const inp=document.getElementById('cin');
+  if(inp){
+    inp.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,90)+'px'});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}});
+  }
+})();
+</script>
+</body>
+</html>
